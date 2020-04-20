@@ -6,6 +6,10 @@
  * @package WooCommerce Tests
  */
 
+use Automattic\WooCommerce\Testing\CodeHacking\CodeHacker;
+use Automattic\WooCommerce\Testing\CodeHacking\StaticWrapper;
+use Automattic\WooCommerce\Testing\CodeHacking\Hacks\StaticMockerHack;
+
 /**
  * Class WC_Unit_Tests_Bootstrap
  */
@@ -29,6 +33,14 @@ class WC_Unit_Tests_Bootstrap {
 	 * @since 2.2
 	 */
 	public function __construct() {
+
+		// Define a static wrapper for all the classes that need it.
+		$classes_that_need_static_wrapper = include_once __DIR__ . '/classes-that-need-static-wrapper.php';
+		foreach ( $classes_that_need_static_wrapper as $class ) {
+			$wrapper_class = StaticWrapper::define_for( $class );
+			CodeHacker::add_hack( new StaticMockerHack( $class, $wrapper_class, true ) );
+		}
+		CodeHacker::enable();
 
 		ini_set( 'display_errors', 'on' ); // phpcs:ignore WordPress.PHP.IniSet.display_errors_Blacklisted
 		error_reporting( E_ALL ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.prevent_path_disclosure_error_reporting, WordPress.PHP.DiscouragedPHPFunctions.runtime_configuration_error_reporting
